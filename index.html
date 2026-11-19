@@ -1,0 +1,1774 @@
+<!--
+  =============================================================================
+  Project: SOC Incident Commander (CompTIA Security+ SY0-701 Simulator)
+  Creator & Architect: Gary Goodale
+  LinkedIn: https://www.linkedin.com/in/gggoodale/
+  GitHub: https://github.com/goodalegg1993-hub
+  Date: November 2026
+  License: MIT License - Free to use for educational & non-commercial study
+  =============================================================================
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOC Incident Commander (SY0-701 Edition)</title>
+<style>
+  :root {
+    --bg: #0b0f19;
+    --panel: #111827;
+    --card: #1a2234;
+    --border: #263147;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --green: #10b981;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --cyan: #38bdf8;
+    --purple: #a78bfa;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .mono { font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; }
+  header {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand h1 { font-size: 1.05rem; letter-spacing: 0.5px; color: var(--cyan); }
+  .badge {
+    font-size: 0.72rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+    border: 1px solid currentColor;
+  }
+  .badge.study { color: var(--green); background: rgba(16,185,129,0.12); }
+  .badge.hardcore { color: var(--red); background: rgba(239,68,68,0.12); }
+  .stats-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .stat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 5px 11px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+  }
+  .stat span { color: var(--muted); margin-right: 5px; }
+  .stat strong { font-family: monospace; font-size: 0.92rem; }
+  .actions-top { display: flex; gap: 8px; }
+  button {
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    padding: 7px 13px;
+    border-radius: 6px;
+    font-size: 0.83rem;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+  button:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  button.primary { background: var(--cyan); color: #06121e; border-color: var(--cyan); }
+  button.primary:hover:not(:disabled) { background: #7dd3fc; color: #06121e; }
+  button.advance { background: var(--green); color: #041d15; border-color: var(--green); }
+  button.advance:hover:not(:disabled) { background: #34d399; color: #041d15; }
+  button.print-btn { background: rgba(167,139,250,0.15); color: var(--purple); border-color: var(--purple); }
+  button.print-btn:hover:not(:disabled) { background: var(--purple); color: #0b0f19; }
+  button.hint-btn { border-color: var(--amber); color: var(--amber); font-size: 0.76rem; padding: 4px 9px; }
+
+  .main-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 385px;
+    overflow: hidden;
+  }
+  .workspace {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-right: 1px solid var(--border);
+  }
+  .tabs {
+    display: flex;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 0 12px;
+    gap: 4px;
+  }
+  .tab-btn {
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    padding: 11px 14px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .tab-btn.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+  .pill {
+    background: var(--border);
+    color: var(--text);
+    font-size: 0.7rem;
+    padding: 1px 6px;
+    border-radius: 10px;
+  }
+  .tab-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .sev {
+    font-size: 0.7rem;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .sev.critical { background: rgba(239,68,68,0.18); color: var(--red); border: 1px solid var(--red); }
+  .sev.high { background: rgba(245,158,11,0.18); color: var(--amber); border: 1px solid var(--amber); }
+  .sev.medium { background: rgba(56,189,248,0.15); color: var(--cyan); border: 1px solid var(--cyan); }
+  .telemetry {
+    background: #070a12;
+    border: 1px solid #1e293b;
+    border-left: 3px solid var(--cyan);
+    padding: 9px 11px;
+    border-radius: 5px;
+    font-size: 0.79rem;
+    color: #cbd5e1;
+    margin: 8px 0;
+    line-height: 1.45;
+  }
+  .meta-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 0.77rem;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .hint-box {
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.4);
+    color: #fde68a;
+    padding: 8px 10px;
+    border-radius: 5px;
+    font-size: 0.79rem;
+    margin-bottom: 10px;
+  }
+  .resp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 8px;
+  }
+  .resp-btn {
+    text-align: left;
+    font-weight: 500;
+    font-size: 0.8rem;
+    padding: 9px 10px;
+    background: #131b2b;
+  }
+
+  .pbq-row {
+    display: grid;
+    grid-template-columns: 1fr 240px;
+    gap: 10px;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.83rem;
+  }
+  .order-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin: 10px 0 12px;
+  }
+  .order-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #0b101d;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 0.82rem;
+  }
+  .order-idx {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--cyan);
+    background: rgba(56,189,248,0.12);
+    border: 1px solid rgba(56,189,248,0.35);
+    padding: 2px 7px;
+    border-radius: 4px;
+    min-width: 30px;
+    text-align: center;
+  }
+  .order-txt { flex: 1; line-height: 1.35; }
+  .order-btns { display: flex; gap: 4px; }
+  .order-btn {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    background: var(--card);
+  }
+  select, input[type="number"], input[type="text"] {
+    background: #0b101d;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 8px;
+    border-radius: 5px;
+    font-size: 0.82rem;
+    width: 100%;
+  }
+  .def-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 12px;
+  }
+  .def-card { display: flex; flex-direction: column; justify-content: space-between; gap: 10px; }
+  .owned { border-color: var(--green); background: rgba(16,185,129,0.06); }
+
+  .feed-panel {
+    background: #080c15;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .feed-header {
+    padding: 11px 14px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--cyan);
+    display: flex;
+    justify-content: space-between;
+  }
+  .feed-log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    font-size: 0.79rem;
+  }
+  .log-item {
+    padding: 8px 10px;
+    border-radius: 5px;
+    background: var(--panel);
+    border-left: 3px solid var(--muted);
+    line-height: 1.4;
+  }
+  .log-item.good { border-left-color: var(--green); }
+  .log-item.bad { border-left-color: var(--red); }
+  .log-item.warn { border-left-color: var(--amber); }
+  .log-item.info { border-left-color: var(--cyan); }
+  .log-meta { font-size: 0.71rem; color: var(--muted); margin-bottom: 3px; }
+  .exam-tip { color: #cbd5e1; margin-top: 4px; font-size: 0.76rem; }
+
+  .mentor-card {
+    padding: 10px 11px;
+    border-radius: 6px;
+    background: rgba(26, 34, 52, 0.95);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--purple);
+    line-height: 1.42;
+  }
+  .mentor-card.mentor-ok {
+    border-left-color: var(--green);
+    background: rgba(16, 185, 129, 0.08);
+  }
+  .mentor-title {
+    font-size: 0.73rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    color: var(--purple);
+    margin-bottom: 5px;
+  }
+  .mentor-card.mentor-ok .mentor-title { color: var(--green); }
+  .mentor-miss {
+    background: #0b101d;
+    border: 1px solid #222e46;
+    border-radius: 4px;
+    padding: 6px 8px;
+    margin-top: 6px;
+    font-size: 0.75rem;
+  }
+  .mentor-miss .q-lbl { font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .mentor-miss .pick-bad { color: #fca5a5; }
+  .mentor-miss .pick-good { color: #6ee7b7; }
+  .mentor-miss .why-txt { color: var(--muted); margin-top: 3px; }
+
+  .debrief-card {
+    padding: 10px 11px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, rgba(56,189,248,0.1), rgba(17,24,39,0.95));
+    border: 1px solid rgba(56,189,248,0.35);
+    border-left: 3px solid var(--cyan);
+    line-height: 1.42;
+  }
+  .debrief-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--cyan);
+    margin-bottom: 4px;
+  }
+  .debrief-focus {
+    margin-top: 6px;
+    padding-top: 5px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 0.75rem;
+    color: #fde68a;
+  }
+
+  .miss-log-box {
+    max-height: 220px;
+    overflow-y: auto;
+    background: #0b101d;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .miss-entry {
+    background: var(--card);
+    border-left: 3px solid var(--red);
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 0.77rem;
+    line-height: 1.4;
+  }
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 7, 15, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 16px;
+  }
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    max-width: 720px;
+    width: 100%;
+    padding: 22px;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+  .modal h2 { color: var(--cyan); margin-bottom: 10px; font-size: 1.2rem; }
+  .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+  .mode-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .mode-card:hover { border-color: var(--cyan); }
+  .dom-bar {
+    height: 8px;
+    background: #0b101d;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 5px;
+  }
+  .dom-fill { height: 100%; background: var(--green); transition: width 0.3s; }
+  .empty { text-align: center; color: var(--muted); padding: 36px 14px; font-size: 0.9rem; }
+  .hidden { display: none !important; }
+
+  @media (max-width: 920px) {
+    .main-grid { grid-template-columns: 1fr; grid-template-rows: 1fr 250px; }
+    .workspace { border-right: none; border-bottom: 1px solid var(--border); }
+    .pbq-row, .mode-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>SOC INCIDENT COMMANDER</h1>
+    <span class="badge study" id="modeBadge">SY0-701</span>
+  </div>
+  <div class="stats-bar">
+    <div class="stat"><span>Shift</span><strong id="stShift">1 / 12</strong></div>
+    <div class="stat"><span>Budget</span><strong id="stBudget">$25,000</strong></div>
+    <div class="stat"><span>Uptime/CIA</span><strong id="stUptime">100%</strong></div>
+    <div class="stat"><span>Board Trust</span><strong id="stTrust">80%</strong></div>
+  </div>
+  <div class="actions-top">
+    <button onclick="openStatsModal()">Domain Stats</button>
+    <button class="advance" id="advBtn" onclick="advanceShift()">Advance Shift &raquo;</button>
+  </div>
+</header>
+
+<div class="main-grid">
+  <div class="workspace">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="siem" onclick="switchTab('siem')">
+        Live SIEM Alerts <span class="pill" id="cntSiem">0</span>
+      </button>
+      <button class="tab-btn" data-tab="pbq" onclick="switchTab('pbq')">
+        PBQ Lab Tickets <span class="pill" id="cntPbq">0</span>
+      </button>
+      <button class="tab-btn" data-tab="def" onclick="switchTab('def')">
+        Defenses &amp; Staffing <span class="pill" id="cntDef">0/5</span>
+      </button>
+      <button class="tab-btn" data-tab="grc" onclick="switchTab('grc')">
+        GRC &amp; Risk Board <span class="pill" id="cntGrc">0</span>
+      </button>
+    </div>
+    <div class="tab-content" id="tabBody"></div>
+  </div>
+
+  <aside class="feed-panel">
+    <div class="feed-header">
+      <span>SOC INCIDENT &amp; STUDY DEBRIEF FEED</span>
+      <span class="mono" style="font-size:0.73rem;color:var(--muted)">SY0-701 LIVE</span>
+    </div>
+    <div class="feed-log" id="feedLog"></div>
+  </aside>
+</div>
+
+<!-- Startup Modal -->
+<div class="modal-backdrop" id="startModal">
+  <div class="modal">
+    <h2>SOC Incident Commander (CompTIA Security+ SY0-701)</h2>
+    <p style="color:var(--muted);font-size:0.88rem;line-height:1.5;">
+      You are taking command of Enterprise SOC operations for a 12-week quarterly cycle. Triage live SIEM alerts, solve 7 archetypes of PBQ architecture &amp; operations tickets, deploy defensive controls, and satisfy GRC risk audits. Survive all 12 shifts with <strong>Uptime &gt; 0%</strong>, <strong>Board Trust &gt; 0%</strong>, and <strong>Budget &ge; $0</strong>.
+    </p>
+    <p id="bestRecordLine" class="mono" style="color:var(--cyan);font-size:0.78rem;margin-top:8px;"></p>
+    <div class="mode-grid">
+      <div class="mode-card" onclick="startGame('study')">
+        <h3 style="color:var(--green);margin-bottom:6px;">Tier 2 Analyst (Study Mode)</h3>
+        <p style="font-size:0.81rem;color:var(--muted);line-height:1.45;">
+          Includes <strong>[Consult NIST/Playbook Hint]</strong> on every SIEM alert, balanced incident severity, and forgiving SLA carryover.
+        </p>
+      </div>
+      <div class="mode-card" onclick="startGame('hardcore')">
+        <h3 style="color:var(--red);margin-bottom:6px;">CISO Hardcore (Exam Mode)</h3>
+        <p style="font-size:0.81rem;color:var(--muted);line-height:1.45;">
+          No hints available, <strong>+30% incident severity</strong>, and strict SLA penalties for any unresolved SIEM alerts when advancing shifts.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Domain Stats / End Game Modal -->
+<div class="modal-backdrop hidden" id="statsModal">
+  <div class="modal">
+    <h2 id="statsTitle">CompTIA Security+ SY0-701 Readiness</h2>
+    <p id="statsSubtitle" style="color:var(--muted);font-size:0.85rem;margin-bottom:14px;"></p>
+    <div id="statsBody" style="display:flex;flex-direction:column;gap:11px;"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px;flex-wrap:wrap;">
+      <button class="print-btn" onclick="generatePrintableGuide()">Print / Save Study Guide (PDF)</button>
+      <button id="closeStatsBtn" onclick="closeStatsModal()">Close</button>
+      <button class="primary" onclick="location.reload()">New 12-Shift Campaign</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = "soc_ic_sy0701_v2_record";
+
+const DOMAINS = {
+  1: "1.0 General Security Concepts",
+  2: "2.0 Threats, Vulnerabilities & Mitigations",
+  3: "3.0 Security Architecture",
+  4: "4.0 Security Operations",
+  5: "5.0 Security Program Management"
+};
+
+const DOMAIN_RULES = {
+  1: "Enforce CIA Triad controls, zero-trust verification, and cryptographic integrity/confidentiality.",
+  2: "Mitigate attacks at the root layer (prepared statements for SQLi, DMARC p=reject for BEC, MFA for auth abuse).",
+  3: "Segment network zones (DMZ/Out-of-Band), enforce encrypted ports/protocols, and apply Layer 2 switch controls like DAI.",
+  4: "Isolate compromised hosts rapidly, revoke hijacked tokens/tickets, and harden service accounts (gMSA, least privilege).",
+  5: "Remember SLE = AV × EF, ALE = SLE × ARO, RPO = max data loss time, and align risk strategy to cost vs. ALE."
+};
+
+const ALERT_POOL = [
+  {
+    title: "Phishing / Business Email Compromise (BEC)",
+    sev: "high", domain: 2, src: "185.220.101.14:443", dst: "mail-gw.corp:25",
+    telemetry: "SPF=FAIL, DMARC=QUARANTINE bypassed via lookalike domain 'examp1e-exec.com' requesting urgent wire transfer.",
+    hint: "Email authentication and domain spoofing defenses rely on strict DMARC policies and executive awareness.",
+    options: [
+      { text: "Quarantine message, enforce DMARC p=reject & block sender domain", ok: true, exp: "DMARC with p=reject prevents spoofed lookalike domains from reaching inboxes when SPF/DKIM fail." },
+      { text: "Open port 25 relay for external verification", ok: false, exp: "Opening SMTP relays worsens spoofing and spam abuse rather than enforcing mail authentication." },
+      { text: "Disable TLS on the mail gateway to inspect headers", ok: false, exp: "Downgrading transport encryption exposes corporate email in transit without stopping BEC." }
+    ]
+  },
+  {
+    title: "Credential Stuffing Campaign",
+    sev: "high", domain: 2, src: "45.133.1.88:51822", dst: "sso.corp.local:443",
+    telemetry: "14,200 failed logins across 900 user accounts in 4 mins from distributed residential proxy IPs; 3 logins succeeded.",
+    hint: "Automated reuse of breached credentials is defeated by phishing-resistant MFA, rate limiting, and lockouts.",
+    options: [
+      { text: "Enforce MFA challenge, rate-limit SSO & force reset on 3 hit accounts", ok: true, exp: "MFA and adaptive rate-limiting stop automated credential stuffing even when leaked passwords match." },
+      { text: "Increase minimum password length policy only", ok: false, exp: "Static length changes do not remediate already-compromised passwords being replayed right now." },
+      { text: "Flush local ARP cache on the SSO reverse proxy", ok: false, exp: "ARP is Layer 2 local switching and has no effect on Layer 7 authentication abuse." }
+    ]
+  },
+  {
+    title: "Pass-the-Hash Lateral Movement",
+    sev: "critical", domain: 2, src: "10.14.22.19:49811", dst: "10.14.10.5:445",
+    telemetry: "Unusual NTLM authentication over SMB from workstation WS-019 to FileSrv-01 without prior interactive logon.",
+    hint: "NTLM hash replay thrives when local admin credentials are shared and legacy NTLM is allowed.",
+    options: [
+      { text: "Isolate WS-019, rotate NTLM/local admin hashes (LAPS) & disable NTLMv1", ok: true, exp: "Isolating the host, rotating local admin hashes via LAPS, and restricting NTLM halts hash replay." },
+      { text: "Enable DNSSEC on the internal DNS resolver", ok: false, exp: "DNSSEC validates DNS records and does not stop SMB/NTLM credential relay attacks." },
+      { text: "Block outbound ICMP echo requests at the perimeter", ok: false, exp: "Ping filtering does not prevent internal SMB lateral movement over port 445." }
+    ]
+  },
+  {
+    title: "Kerberoasting Activity Detected",
+    sev: "critical", domain: 4, src: "10.14.31.44:50211", dst: "dc01.corp.local:88",
+    telemetry: "Standard user requested multiple TGS service tickets encrypted with legacy RC4_HMAC_MD5 for SPN accounts.",
+    hint: "Service account tickets encrypted with weak RC4 can be cracked offline unless AES and strong Managed Service Accounts are used.",
+    options: [
+      { text: "Disable suspect account, rotate SPN secrets & enforce gMSA + AES-256", ok: true, exp: "Group Managed Service Accounts (gMSA) and AES encryption defeat offline TGS ticket cracking." },
+      { text: "Switch Active Directory replication to port 389 cleartext", ok: false, exp: "Removing LDAP encryption exposes directory traffic without protecting Kerberos tickets." },
+      { text: "Enable port security sticky MAC on the core switch", ok: false, exp: "Layer 2 MAC binding does not stop authenticated domain users from requesting TGS tickets." }
+    ]
+  },
+  {
+    title: "SQL Injection (SQLi) Probe",
+    sev: "critical", domain: 2, src: "91.214.124.9:39120", dst: "app-web02.dmz:443",
+    telemetry: "WAF alerts on anomalous boolean logic & UNION query patterns targeting /api/orders?id= parameter; DB error leaked.",
+    hint: "Proper remediation removes direct query concatenation at the code layer and blocks malformed requests at the WAF.",
+    options: [
+      { text: "Enable WAF SQLi blocking rule & enforce parameterized queries", ok: true, exp: "Parameterized queries (prepared statements) separate code from data, preventing SQL injection." },
+      { text: "Base64-encode URL parameters in client-side JavaScript", ok: false, exp: "Encoding is not encryption or validation; attackers easily encode payloads before sending." },
+      { text: "Disable HTTPS so IDS can inspect SQL payloads in plaintext", ok: false, exp: "Stripping TLS breaks transport confidentiality when TLS inspection or WAFs should be used instead." }
+    ]
+  },
+  {
+    title: "Stored Cross-Site Scripting (XSS)",
+    sev: "high", domain: 2, src: "172.58.99.41:44102", dst: "portal.corp.com:443",
+    telemetry: "User profile bio field stored unescaped &lt;script&gt; tag executed in admin browser context; session token accessed.",
+    hint: "Preventing browser script execution relies on output encoding, HttpOnly cookies, and Content Security Policy (CSP).",
+    options: [
+      { text: "Sanitize/encode output, deploy strict CSP & set HttpOnly cookies", ok: true, exp: "Context-aware output encoding, CSP, and HttpOnly flags block stored XSS execution and cookie theft." },
+      { text: "Implement IPsec tunnel mode between user browsers and portal", ok: false, exp: "IPsec protects network transport, not malicious scripts rendered inside the browser DOM." },
+      { text: "Enforce 90-day password expiration for portal users", ok: false, exp: "Password rotation does not sanitize stored HTML/JS payloads or protect active session cookies." }
+    ]
+  },
+  {
+    title: "Cross-Site Request Forgery (CSRF)",
+    sev: "medium", domain: 2, src: "203.0.113.77:55120", dst: "hr-admin.corp:443",
+    telemetry: "Admin browser auto-submitted hidden cross-origin POST form to /admin/grantRole while authenticated via cookie.",
+    hint: "State-changing requests must prove origin intent using unpredictable anti-CSRF tokens and SameSite cookies.",
+    options: [
+      { text: "Enforce anti-CSRF synchronizer tokens & SameSite=Strict cookies", ok: true, exp: "Anti-CSRF tokens and SameSite cookie attributes prevent forged cross-origin state changes." },
+      { text: "Enable HSTS preload on the HR portal", ok: false, exp: "HSTS enforces HTTPS connections only and does not verify request origin intent." },
+      { text: "Configure SNMPv3 traps on the HR web server", ok: false, exp: "SNMP monitoring does not stop browser-based cross-origin request forgery." }
+    ]
+  },
+  {
+    title: "OS Command Injection on Gateway",
+    sev: "critical", domain: 2, src: "198.51.100.33:60211", dst: "vpn-gw.dmz:8443",
+    telemetry: "Diagnostic ping utility accepted metacharacter separator, spawning unexpected /bin/sh child process reading /etc/passwd.",
+    hint: "Never pass raw user input to a system shell; validate strictly against an allowlist and avoid shell execution.",
+    options: [
+      { text: "Patch input allowlist validation, drop shell call & isolate DMZ node", ok: true, exp: "Strict input validation and avoiding OS shell interpreters completely eliminate command injection." },
+      { text: "Hide the diagnostic endpoint URL from robots.txt", ok: false, exp: "Security through obscurity does not stop attackers from probing known management paths." },
+      { text: "Enable RAID-5 redundancy on the gateway disk", ok: false, exp: "Disk fault tolerance protects availability from hardware failure, not code injection." }
+    ]
+  },
+  {
+    title: "ARP Poisoning / On-Path Spoofing",
+    sev: "high", domain: 3, src: "00:1a:2b:3c:4d:99", dst: "VLAN-20 Broadcast",
+    telemetry: "Switch logs rapid gratuitous ARP replies claiming default gateway 10.20.0.1 MAC belongs to an unauthorized desk port.",
+    hint: "On Layer 2 switches, pair DHCP Snooping with Dynamic ARP Inspection (DAI) to validate IP-to-MAC bindings.",
+    options: [
+      { text: "Flush ARP cache, enable DHCP Snooping + Dynamic ARP Inspection (DAI)", ok: true, exp: "DAI checks ARP packets against the trusted DHCP Snooping binding table to block Layer 2 spoofing." },
+      { text: "Deploy a Web Application Firewall (WAF) in front of the gateway", ok: false, exp: "WAFs operate at Layer 7 HTTP/HTTPS and cannot inspect or block Layer 2 ARP frames." },
+      { text: "Configure Split DNS for internal subnets", ok: false, exp: "DNS configuration operates at Layer 7 and cannot stop local ARP table poisoning." }
+    ]
+  },
+  {
+    title: "DNS Tunneling Data Exfiltration",
+    sev: "high", domain: 4, src: "10.14.88.12:53219", dst: "8.8.4.4:53",
+    telemetry: "Workstation sending 12,000 high-entropy base32-encoded TXT queries per hour to *.c2-exfil-test.xyz.",
+    hint: "Force all DNS through internal resolvers, sinkhole malicious domains, and block direct outbound UDP/TCP 53.",
+    options: [
+      { text: "Sinkhole domain, isolate host & block direct egress Port 53", ok: true, exp: "DNS sinkholing and blocking unauthorized egress port 53 traffic cuts covert DNS exfiltration channels." },
+      { text: "Enable Split Tunneling on corporate VPN clients", ok: false, exp: "Split tunneling reduces centralized visibility and lets endpoints bypass corporate DNS inspection." },
+      { text: "Change internal resolver to forward over port 5353 mDNS", ok: false, exp: "mDNS is for local link discovery and does not block covert TXT query exfiltration." }
+    ]
+  },
+  {
+    title: "UDP Amplification DDoS Flood",
+    sev: "high", domain: 2, src: "Multiple Spoofed IPs:123", dst: "edge-fw.corp:443",
+    telemetry: "Ingress saturated at 48 Gbps with unsolicited NTP monlist & DNS ANY reflection responses exhausting WAN link.",
+    hint: "Volumetric saturation exceeds on-prem firewalls; upstream ISP scrubbing / Anycast CDN absorption is required.",
+    options: [
+      { text: "Activate cloud DDoS scrubbing/BGP Anycast routing & rate-limit UDP", ok: true, exp: "Upstream cloud scrubbing and Anycast distribute and filter volumetric traffic before it saturates your WAN." },
+      { text: "Increase the web server CPU cores locally", ok: false, exp: "Adding local CPU does not relieve a 48 Gbps saturated WAN ingress circuit." },
+      { text: "Enable Port Address Translation (PAT) on internal switches", ok: false, exp: "PAT does not mitigate external volumetric bandwidth exhaustion." }
+    ]
+  },
+  {
+    title: "Ransomware & Shadow Copy Deletion",
+    sev: "critical", domain: 4, src: "10.14.55.7:Local", dst: "FileSrv-02:Local",
+    telemetry: "EDR flags rapid mass file renaming (.locked) preceded by vssadmin shadow copy deletion attempt.",
+    hint: "Contain immediately at the host/network layer and recover from offline immutable backups rather than paying.",
+    options: [
+      { text: "Network-isolate host via EDR, kill process & restore immutable backup", ok: true, exp: "Immediate host containment stops lateral encryption while immutable backups guarantee clean recovery." },
+      { text: "Reboot FileSrv-02 into Safe Mode and run disk defragmentation", ok: false, exp: "Defragmenting or rebooting without isolation risks losing volatile evidence or resuming encryption." },
+      { text: "Pay the ransom immediately to preserve SLA uptime", ok: false, exp: "Paying ransom never guarantees decryption keys and violates sound incident response governance." }
+    ]
+  },
+  {
+    title: "Rogue AP / Evil Twin Broadcast",
+    sev: "medium", domain: 2, src: "de:ad:be:ef:11:22", dst: "Corp-WiFi-5GHz",
+    telemetry: "WIDS detects unauthorized SSID 'Corp-Secure' broadcasting with weaker WPA2-PSK near Lobby-East, deauthing clients.",
+    hint: "802.11w Management Frame Protection stops deauth floods while WIPS/802.1X EAP-TLS blocks rogue AP association.",
+    options: [
+      { text: "Locate/disable rogue port via WIPS, enforce 802.1X EAP-TLS & 802.11w", ok: true, exp: "802.11w protects management frames against deauth while 802.1X mutual cert auth defeats Evil Twins." },
+      { text: "Disable SSID broadcasting on the legitimate access points", ok: false, exp: "Hiding SSIDs is security through obscurity and is trivially bypassed by wireless sniffers." },
+      { text: "Switch legitimate APs from WPA3 to WEP for compatibility", ok: false, exp: "WEP is broken and trivially cracked in minutes." }
+    ]
+  },
+  {
+    title: "Supply Chain / Signed Update Compromise",
+    sev: "critical", domain: 2, src: "10.14.9.10:443", dst: "203.0.113.199:443",
+    telemetry: "Vendor-signed monitoring agent update v4.2 initiated anomalous outbound TLS beacons to newly registered domain.",
+    hint: "Verify software integrity via SBOM/checksums, revoke trusted execution of the tainted version, and block C2 IOCs.",
+    options: [
+      { text: "Quarantine agent v4.2, block C2 IOCs, check SBOM & roll back hash", ok: true, exp: "Validating cryptographic hashes/SBOMs and quarantining tainted signed binaries stops supply-chain malware." },
+      { text: "Trust the binary because it carries a valid vendor code signature", ok: false, exp: "Supply-chain compromises often abuse legitimate vendor signing certificates." },
+      { text: "Enable MAC filtering on the datacenter hypervisor", ok: false, exp: "MAC filtering does not stop compromised software running on authorized servers." }
+    ]
+  },
+  {
+    title: "Impossible Travel Anomaly",
+    sev: "medium", domain: 4, src: "198.51.100.88:443", dst: "cloud-idp.corp:443",
+    telemetry: "User j.miller authenticated from New York (09:02 UTC) and 14 minutes later from Eastern Europe (09:16 UTC).",
+    hint: "When impossible travel occurs, revoke active OAuth/refresh tokens immediately before resetting credentials.",
+    options: [
+      { text: "Revoke active session tokens, suspend account & require MFA re-enroll", ok: true, exp: "Revoking refresh/session tokens stops attackers even after a password reset." },
+      { text: "Allow session if the user entered the correct username", ok: false, exp: "Ignoring impossible travel leaves hijacked sessions active." },
+      { text: "Change the corporate NTP time server offset", ok: false, exp: "The timestamps indicate distinct geolocations, not clock drift." }
+    ]
+  },
+  {
+    title: "Privilege Escalation via Misconfigured Sudo/Service",
+    sev: "high", domain: 4, src: "10.14.70.15:Local", dst: "app-lnx04:Local",
+    telemetry: "Low-privilege web service user spawned root shell by abusing writable binary path in scheduled root cron job.",
+    hint: "Apply least privilege and remove world-writable permissions on scripts/binaries executed by root.",
+    options: [
+      { text: "Fix file permissions (chmod), enforce Least Privilege & audit root cron", ok: true, exp: "Removing write permissions on privileged paths and applying least privilege closes local escalation vectors." },
+      { text: "Disable SELinux / AppArmor to reduce alert noise", ok: false, exp: "Mandatory Access Control (MAC) is a primary safeguard against privilege escalation." },
+      { text: "Add the web user to the wheel/sudoers group for logging", ok: false, exp: "Granting administrative groups violates least privilege and worsens exposure." }
+    ]
+  },
+  {
+    title: "Cloud Object Storage Misconfiguration",
+    sev: "high", domain: 3, src: "54.210.18.90:443", dst: "s3-archive-prod:443",
+    telemetry: "CSPM alerts that backup bucket ACL switched to 'Public-Read'; 4.2 GB downloaded by unknown external IP.",
+    hint: "Immediately block public access at the account/bucket level, rotate exposed keys, and enable server-side encryption.",
+    options: [
+      { text: "Enforce Block Public Access, enable KMS encryption & audit IAM logs", ok: true, exp: "Cloud public-access blocks, least-privilege IAM, and KMS encryption prevent unauthorized bucket exposure." },
+      { text: "Rename the bucket to a longer random string while keeping it public", ok: false, exp: "Obscurity does not protect public buckets from automated enumeration." },
+      { text: "Move the bucket to HTTP port 80 to simplify caching", ok: false, exp: "Removing TLS encryption exposes cloud data transfers in plaintext." }
+    ]
+  },
+  {
+    title: "Session Hijacking via Unencrypted Wi-Fi",
+    sev: "medium", domain: 1, src: "172.16.40.12:80", dst: "legacy-intranet:80",
+    telemetry: "Traveling contractor captured plaintext session cookie over coffee-shop Wi-Fi; replay detected on intranet.",
+    hint: "Enforce end-to-end TLS (HTTPS + Secure cookie flag) and require Always-On VPN for remote access.",
+    options: [
+      { text: "Invalidate cookie, enforce HTTPS + Secure flag & require VPN", ok: true, exp: "Encrypting transport via TLS/VPN and marking cookies Secure prevents passive session hijacking." },
+      { text: "Ask users to clear browser history weekly", ok: false, exp: "Clearing history does not protect plaintext network traffic from interception." },
+      { text: "Switch intranet authentication to HTTP Basic Auth over port 80", ok: false, exp: "HTTP Basic Auth sends base64 credentials in cleartext over unencrypted connections." }
+    ]
+  }
+];
+
+const PBQ_DECK = [
+  // Type A: Port & Protocol Matching (3 variations)
+  {
+    id: "A1", kind: "match", type: "Type A: Port & Protocol Matching (Core Infra)", domain: 3,
+    desc: "Match each infrastructure firewall rule requirement to its standard encrypted or auth port.",
+    mentorSummary: "Core infrastructure hardening relies on encrypted directory/management ports (LDAPS 636, SFTP 22, SNMPv3 161/162) and strict KDC/RDP scoping.",
+    items: [
+      { q: "Secure Directory Queries over TLS (LDAPS)", ans: "636 / TCP", exp: "LDAPS wraps LDAP directory queries in TLS over TCP 636 instead of cleartext TCP 389." },
+      { q: "Encrypted File Transfer over SSH (SFTP)", ans: "22 / TCP", exp: "SFTP runs inside an encrypted SSH tunnel on TCP 22, replacing cleartext FTP." },
+      { q: "Encrypted Network Monitoring & Traps (SNMPv3)", ans: "161-162 / UDP", exp: "SNMPv3 secures polling (UDP 161) and trap alerts (UDP 162) with authPriv encryption." },
+      { q: "Domain Ticket Authentication (Kerberos)", ans: "88 / TCP-UDP", exp: "Kerberos clients request TGT and TGS authentication tickets from the KDC on port 88." }
+    ],
+    choices: ["636 / TCP", "22 / TCP", "161-162 / UDP", "88 / TCP-UDP", "389 / TCP", "23 / TCP"]
+  },
+  {
+    id: "A2", kind: "match", type: "Type A: Port & Protocol Matching (Mail & Web)", domain: 3,
+    desc: "Assign the correct secure transport port to each external mail, DNS, and web service.",
+    mentorSummary: "Securing edge messaging and resolution replaces legacy cleartext ports with SMTPS/Submission (587), IMAPS (993), DoT (853), and HTTPS (443).",
+    items: [
+      { q: "Encrypted Mail Submission with STARTTLS/AUTH", ans: "587 / TCP", exp: "TCP 587 is the standard authenticated mail submission port supporting STARTTLS." },
+      { q: "Encrypted Mailbox Retrieval over TLS (IMAPS)", ans: "993 / TCP", exp: "IMAPS encrypts client-to-mailbox synchronization over TCP 993 instead of cleartext 143." },
+      { q: "DNS over TLS (DoT) Encrypted Resolution", ans: "853 / TCP", exp: "DoT encapsulates DNS queries inside TLS over dedicated TCP port 853." },
+      { q: "Public Encrypted Web API & Portal (HTTPS)", ans: "443 / TCP", exp: "HTTPS delivers HTTP over TLS on TCP port 443 to ensure transport confidentiality." }
+    ],
+    choices: ["587 / TCP", "993 / TCP", "853 / TCP", "443 / TCP", "110 / TCP", "53 / UDP"]
+  },
+  {
+    id: "A3", kind: "match", type: "Type A: Port & Protocol Matching (Remote Ops & Logs)", domain: 3,
+    desc: "Map each SOC logging, remote administration, and network time requirement to its port.",
+    mentorSummary: "Operations firewalls must restrict RDP (3389), centralize Syslog (514) / TLS Syslog (6514), and lock down SMB (445) and RADIUS (1812).",
+    items: [
+      { q: "Remote Desktop Protocol (RDP) behind Jump Host", ans: "3389 / TCP-UDP", exp: "RDP uses port 3389 and must be restricted to Jump Hosts or VPN tunnels." },
+      { q: "Centralized Log Forwarding (Standard Syslog)", ans: "514 / UDP", exp: "Standard Syslog forwards firewall and endpoint telemetry to SIEM collectors on UDP 514." },
+      { q: "Enterprise File Share Transport (SMB)", ans: "445 / TCP", exp: "SMB operates directly over TCP 445 and should never be exposed to untrusted networks." },
+      { q: "802.1X Network Access Auth (RADIUS)", ans: "1812 / UDP", exp: "RADIUS authentication exchanges between switches/APs and the NAC server use UDP 1812." }
+    ],
+    choices: ["3389 / TCP-UDP", "514 / UDP", "445 / TCP", "1812 / UDP", "21 / TCP", "69 / UDP"]
+  },
+
+  // Type B: Network Zone Architecture (3 variations)
+  {
+    id: "B1", kind: "match", type: "Type B: Network Zone Architecture (Perimeter)", domain: 3,
+    desc: "Place each perimeter and internal security control into its optimal architectural zone.",
+    mentorSummary: "Defense-in-depth places public filters (WAF/Honeypot) in the DMZ, admin bastions in Out-of-Band Management, NAC at Access Switches, and DLP inside the LAN.",
+    items: [
+      { q: "Web Application Firewall (WAF) shielding public apps", ans: "DMZ / Screened Subnet", exp: "WAFs sit in the DMZ to filter Layer 7 attacks before traffic reaches internal zones." },
+      { q: "802.1X NAC Enforcement for wired desk drops", ans: "Endpoint / Access Switch", exp: "802.1X authenticates devices and verifies posture right at the edge switch port." },
+      { q: "Hardened Bastion / Jump Host for server admins", ans: "Out-of-Band Management", exp: "Jump hosts belong in an isolated Management VLAN to shield privileged admin paths." },
+      { q: "Data Loss Prevention (DLP) & Egress Proxy", ans: "Internal Corp LAN", exp: "DLP sensors inspect internal workstation traffic before sensitive data exits the LAN." }
+    ],
+    choices: ["DMZ / Screened Subnet", "Internal Corp LAN", "Endpoint / Access Switch", "Out-of-Band Management"]
+  },
+  {
+    id: "B2", kind: "match", type: "Type B: Network Zone Architecture (Zero Trust)", domain: 3,
+    desc: "Assign each enterprise workload or deception asset to its proper segmented zone.",
+    mentorSummary: "Separating IoT, OT/ICS, deception honeypots, and core databases prevents lateral pivot from low-trust devices to crown-jewel assets.",
+    items: [
+      { q: "Deception Honeypot trapping external scanners", ans: "DMZ / Screened Subnet", exp: "Honeypots in the DMZ lure reconnaissance without risking internal corporate data." },
+      { q: "Smart HVAC & IP Badge Cameras", ans: "Isolated IoT VLAN", exp: "Unpatchable IoT devices belong in an isolated VLAN with strict egress-only rules." },
+      { q: "Primary Customer SQL Database Cluster", ans: "Restricted Data Tier", exp: "Databases sit in a deep internal Data Tier reachable only from authorized app servers." },
+      { q: "SIEM Log Collectors & Hypervisor Consoles", ans: "Out-of-Band Management", exp: "Security tooling and hypervisor interfaces require dedicated management isolation." }
+    ],
+    choices: ["DMZ / Screened Subnet", "Isolated IoT VLAN", "Restricted Data Tier", "Out-of-Band Management"]
+  },
+  {
+    id: "B3", kind: "match", type: "Type B: Network Zone Architecture (Hybrid Cloud)", domain: 3,
+    desc: "Map each hybrid cloud and remote connectivity control to the correct architectural boundary.",
+    mentorSummary: "Hybrid security anchors external access at Cloud Edge/SASE, links branches via SD-WAN/Site-to-Site VPN, and isolates guest Wi-Fi from internal VPCs.",
+    items: [
+      { q: "DDoS Anycast Scrubbing & CDN Edge", ans: "Cloud Perimeter / Edge", exp: "Volumetric DDoS mitigation must absorb traffic at the external Cloud Edge before WAN links saturate." },
+      { q: "Visitor & Contractor Wi-Fi SSID", ans: "Guest Internet-Only VLAN", exp: "Guest wireless must route straight to the internet with RFC1918 internal blocks." },
+      { q: "Encrypted Branch-to-HQ Tunnel Termination", ans: "VPN Concentrator / SD-WAN", exp: "Site-to-site IPsec tunnels terminate on dedicated perimeter VPN/SD-WAN gateways." },
+      { q: "Container Microservice Pod-to-Pod Rules", ans: "East-West Microsegmentation", exp: "East-West network policies restrict lateral traffic inside cloud clusters." }
+    ],
+    choices: ["Cloud Perimeter / Edge", "Guest Internet-Only VLAN", "VPN Concentrator / SD-WAN", "East-West Microsegmentation"]
+  },
+
+  // Type C: Vulnerability & Remediation Pairing (3 variations)
+  {
+    id: "C1", kind: "match", type: "Type C: Vulnerability & Remediation (Legacy & Crypto)", domain: 2,
+    desc: "Pair each vulnerability scan finding with the proper Security+ remediation.",
+    mentorSummary: "Effective remediation eliminates root flaws: quote service paths, drop cleartext protocols, upgrade to AEAD TLS, and segment EOL systems.",
+    items: [
+      { q: "Unquoted Windows Service Path with spaces", ans: "Enclose path in quotes & restrict folder ACL", exp: "Quote-wrapping stops Windows from misparsing spaces to launch an attacker-planted binary." },
+      { q: "Cleartext Credentials in Telnet/FTP traffic", ans: "Migrate to SSH / SFTP encrypted protocols", exp: "SSH and SFTP protect administrative sessions and file transfers from sniffing." },
+      { q: "End-of-Life (EOL) OS running legacy app", ans: "Network segmentation / virtual patching", exp: "Compensating controls like microsegmentation and IPS virtual patching shield unpatchable EOL hosts." },
+      { q: "Weak Cipher Suite (RC4 / SSLv3) on load balancer", ans: "Enforce TLS 1.2/1.3 with AEAD ciphers", exp: "Disabling SSLv3/RC4 and enforcing AEAD ciphers prevents downgrade and padding attacks." }
+    ],
+    choices: ["Enclose path in quotes & restrict folder ACL", "Migrate to SSH / SFTP encrypted protocols", "Network segmentation / virtual patching", "Enforce TLS 1.2/1.3 with AEAD ciphers", "Disable antivirus real-time scanning"]
+  },
+  {
+    id: "C2", kind: "match", type: "Type C: Vulnerability & Remediation (AppSec)", domain: 2,
+    desc: "Match each web application assessment finding to its root-cause code or header fix.",
+    mentorSummary: "AppSec remediation pairs prepared statements against SQLi, CSP/encoding against XSS, SameSite tokens for CSRF, and allowlists for SSRF.",
+    items: [
+      { q: "String-concatenated SQL query in search API", ans: "Use Parameterized Queries / Prepared Statements", exp: "Prepared statements bind inputs as data rather than executable SQL syntax." },
+      { q: "Reflected HTML script execution in error page", ans: "Context-Aware Output Encoding & Strict CSP", exp: "Output encoding and CSP prevent malicious scripts from executing in the user's browser." },
+      { q: "Cross-origin state-changing POST abuse", ans: "Anti-CSRF Synchronizer Tokens & SameSite=Strict", exp: "Unpredictable CSRF tokens validate that state changes originated from the legitimate app." },
+      { q: "Server-Side Request Forgery hitting cloud metadata", ans: "Enforce URL Allowlist & Require IMDSv2", exp: "Strict egress allowlists and IMDSv2 session tokens block SSRF metadata theft." }
+    ],
+    choices: ["Use Parameterized Queries / Prepared Statements", "Context-Aware Output Encoding & Strict CSP", "Anti-CSRF Synchronizer Tokens & SameSite=Strict", "Enforce URL Allowlist & Require IMDSv2", "Hide API endpoints in robots.txt"]
+  },
+  {
+    id: "C3", kind: "match", type: "Type C: Vulnerability & Remediation (Endpoint & Cloud)", domain: 2,
+    desc: "Pair each endpoint or cloud posture finding with the strongest defensive control.",
+    mentorSummary: "Modern hygiene removes default credentials, restricts local admin via LAPS, locks down public cloud buckets, and requires signed images.",
+    items: [
+      { q: "Identical local Administrator password on 400 PCs", ans: "Deploy LAPS (Unique Rotated Local Passwords)", exp: "LAPS assigns unique, auto-rotated local admin passwords to prevent lateral pass-the-hash." },
+      { q: "Public-Read ACL on cloud backup storage bucket", ans: "Enable Account Block Public Access & KMS", exp: "Blocking public access at the account level and encrypting with KMS prevents data leaks." },
+      { q: "Unverified third-party container base images", ans: "Enforce Registry Signing & SBOM Scanning", exp: "Verifying image signatures and SBOMs catches vulnerable or tampered supply-chain layers." },
+      { q: "Default vendor SNMP 'public' community string", ans: "Disable SNMPv1/v2c & Enforce SNMPv3 AuthPriv", exp: "SNMPv3 eliminates default cleartext community strings with authenticated encryption." }
+    ],
+    choices: ["Deploy LAPS (Unique Rotated Local Passwords)", "Enable Account Block Public Access & KMS", "Enforce Registry Signing & SBOM Scanning", "Disable SNMPv1/v2c & Enforce SNMPv3 AuthPriv", "Enable Guest account for diagnostics"]
+  },
+
+  // Type D: Firewall ACL Top-Down Ordering (2 variations)
+  {
+    id: "D1", kind: "order", type: "Type D: Firewall ACL Top-Down Ordering (DMZ SSH)", domain: 3,
+    desc: "Order these 4 firewall rules from top (Position #1) to bottom (Position #4) for strict top-down evaluation.",
+    mentorSummary: "Top-down ACLs require narrowest host permits above subnet denies, followed by broader service permits and a catch-all DENY ANY at the bottom.",
+    items: [
+      { text: "ALLOW TCP 22 from Bastion-10.9.9.5 to DMZ-10.4.0.10 (Single Bastion SSH)", exp: "Position #1: Narrowest single-host SSH exception must match before the broad internal SSH block." },
+      { text: "DENY TCP 22 from 10.0.0.0/8 to DMZ-10.4.0.0/24 (Block Internal SSH Lateral)", exp: "Position #2: Denies all other internal SSH attempts before broader internal-to-DMZ traffic is allowed." },
+      { text: "ALLOW IP from 10.0.0.0/8 to DMZ-10.4.0.0/24 (Internal App/Web Traffic)", exp: "Position #3: Permits general internal-to-DMZ application ports once SSH is explicitly restricted above." },
+      { text: "DENY ANY from ANY to ANY (Explicit Default Cleanup Drop)", exp: "Position #4: Broadest catch-all deny must sit last; placing it higher drops valid traffic below." }
+    ]
+  },
+  {
+    id: "D2", kind: "order", type: "Type D: Firewall ACL Top-Down Ordering (Guest Wi-Fi)", domain: 3,
+    desc: "Arrange the Guest VLAN egress ACL from most specific exception (#1) to catch-all drop (#4).",
+    mentorSummary: "Guest egress ACLs must permit internal DNS resolution first, deny all other RFC1918 corporate ranges second, permit outbound HTTPS third, and deny all else last.",
+    items: [
+      { text: "ALLOW UDP 53 from Guest-VLAN to DNS-10.1.1.5 (Internal DNS Exception)", exp: "Position #1: Specific internal DNS resolver exception must sit above the RFC1918 corporate block." },
+      { text: "DENY IP from Guest-VLAN to RFC1918-10.0.0.0/8 (Isolate Corporate LAN)", exp: "Position #2: Blocks guest access to all internal corporate subnets prior to permitting internet HTTPS." },
+      { text: "ALLOW TCP 443 from Guest-VLAN to ANY (Outbound Internet HTTPS)", exp: "Position #3: Permits encrypted internet browsing after internal corporate subnets are blocked above." },
+      { text: "DENY ANY from Guest-VLAN to ANY (Block Unapproved Egress Ports)", exp: "Position #4: Catch-all cleanup rule drops all remaining unapproved outbound ports at the bottom." }
+    ]
+  },
+
+  // Type E: Cryptography & PKI Matching (2 variations)
+  {
+    id: "E1", kind: "match", type: "Type E: Cryptography & PKI Matching (Standards)", domain: 1,
+    desc: "Match each enterprise security requirement to the proper cryptographic standard or hardware control.",
+    mentorSummary: "Choose S/MIME for email non-repudiation, Argon2id/bcrypt for salted password hashing, TLS 1.3 for transit, and TPM 2.0 for hardware root-of-trust.",
+    items: [
+      { q: "Email Signing, Integrity & Non-Repudiation", ans: "S/MIME (Asymmetric Digital Signature)", exp: "S/MIME uses PKI certificates to sign emails, providing sender authenticity and non-repudiation." },
+      { q: "Salted Password Hashing in Auth Database", ans: "Argon2id / bcrypt", exp: "Memory-hard, salted key-stretching algorithms like Argon2id resist GPU/rainbow-table cracking." },
+      { q: "Data-in-Transit Encryption for Web & APIs", ans: "TLS 1.3 (AEAD)", exp: "TLS 1.3 enforces modern AEAD cipher suites and forward secrecy for data in transit." },
+      { q: "Hardware Root of Trust for Endpoint BitLocker Keys", ans: "TPM 2.0 (Trusted Platform Module)", exp: "TPM 2.0 securely stores cryptographic keys in hardware and verifies boot integrity." }
+    ],
+    choices: ["S/MIME (Asymmetric Digital Signature)", "Argon2id / bcrypt", "TLS 1.3 (AEAD)", "TPM 2.0 (Trusted Platform Module)", "ECB Block Cipher Mode", "MD5 Unsalted Hash"]
+  },
+  {
+    id: "E2", kind: "match", type: "Type E: Cryptography & PKI Matching (PKI & Keys)", domain: 1,
+    desc: "Pair each PKI lifecycle or key-management requirement with the correct mechanism.",
+    mentorSummary: "Modern PKI relies on OCSP Stapling for fast revocation checks, ECDHE for forward secrecy, AES-256-XTS for full-disk encryption, and HSM/KMS for key custody.",
+    items: [
+      { q: "Low-Latency Certificate Revocation Verification", ans: "OCSP Stapling", exp: "OCSP Stapling attaches a CA-signed revocation timestamp to the TLS handshake without extra client lookups." },
+      { q: "Full-Disk Encryption on Traveling Laptops", ans: "AES-256-XTS", exp: "AES-256-XTS is specifically designed for block-level sector encryption of storage volumes at rest." },
+      { q: "Key Exchange Providing Perfect Forward Secrecy", ans: "ECDHE (Ephemeral Elliptic-Curve DH)", exp: "ECDHE generates ephemeral session keys so past captures stay safe even if a server key leaks later." },
+      { q: "FIPS 140-3 Hardware Custody for Cloud Root Keys", ans: "Cloud HSM / KMS", exp: "HSMs provide tamper-resistant hardware generation and storage of master cryptographic keys." }
+    ],
+    choices: ["OCSP Stapling", "AES-256-XTS", "ECDHE (Ephemeral Elliptic-Curve DH)", "Cloud HSM / KMS", "RC4 Stream Cipher", "Self-Signed Wildcard HTTP"]
+  },
+
+  // Type F: IAM & Least Privilege Matrix (2 variations)
+  {
+    id: "F1", kind: "match", type: "Type F: IAM & Least Privilege Matrix (Controls)", domain: 4,
+    desc: "Assign the strongest identity and access management control to each enterprise profile.",
+    mentorSummary: "Use PAM + JIT for privileged admin tasks, FIDO2 for phishing-resistant logins, ABAC for context-aware rules, and OAuth 2.0 for API token delegation.",
+    items: [
+      { q: "Temporary Domain Admin Elevation + Session Recording", ans: "PAM + Just-in-Time (JIT)", exp: "Privileged Access Management with JIT removes standing admin rights and records elevated sessions." },
+      { q: "Phishing-Resistant Hardware Login for Executives", ans: "FIDO2 / WebAuthn", exp: "FIDO2 binds cryptographic assertions to the origin domain, defeating adversary-in-the-middle phishing." },
+      { q: "Dynamic Access Based on Geo, Time & Device Health", ans: "ABAC (Attribute-Based Access Control)", exp: "ABAC evaluates real-time user, resource, and environmental attributes before granting access." },
+      { q: "Scoped Third-Party API Token Delegation", ans: "OAuth 2.0", exp: "OAuth 2.0 issues scoped access tokens without sharing raw user passwords with third-party apps." }
+    ],
+    choices: ["PAM + Just-in-Time (JIT)", "FIDO2 / WebAuthn", "ABAC (Attribute-Based Access Control)", "OAuth 2.0", "DAC (Discretionary Access Control)"]
+  },
+  {
+    id: "F2", kind: "match", type: "Type F: IAM & Least Privilege Matrix (Governance)", domain: 4,
+    desc: "Match each organizational identity governance scenario to its proper IAM standard or policy.",
+    mentorSummary: "Enterprise governance uses SAML 2.0 for SaaS SSO, RBAC for departmental roles, mTLS for non-human services, and Separation of Duties to prevent fraud.",
+    items: [
+      { q: "Enterprise Web SSO Assertion from IdP to SaaS", ans: "SAML 2.0", exp: "SAML 2.0 exchanges XML identity assertions between an Identity Provider and cloud Service Providers." },
+      { q: "Standardized Departmental Permissions (HR / Helpdesk)", ans: "RBAC (Role-Based Access Control)", exp: "RBAC maps permissions to job-function roles rather than individual user accounts." },
+      { q: "Mutual Non-Human Microservice Authentication", ans: "mTLS / Short-Lived Certificates", exp: "Mutual TLS authenticates both client and server workloads cryptographically without static secrets." },
+      { q: "Prevent Single Employee from Requesting & Approving Wires", ans: "Separation of Duties (SoD)", exp: "Separation of Duties splits critical workflow stages across two or more individuals to deter fraud." }
+    ],
+    choices: ["SAML 2.0", "RBAC (Role-Based Access Control)", "mTLS / Short-Lived Certificates", "Separation of Duties (SoD)", "Shared Generic Service Login"]
+  },
+
+  // Type G: Incident Response & Forensics Sequencing (2 variations)
+  {
+    id: "G1", kind: "order", type: "Type G: IR & Forensics Sequencing (Live Host)", domain: 4,
+    desc: "Order these 4 forensic & incident response actions from first (#1) to last (#4) on a compromised server.",
+    mentorSummary: "Always follow Order of Volatility (capture RAM/connections first), then isolate the host, eradicate persistence/root cause, and restore from clean backups.",
+    items: [
+      { text: "Capture Volatile Memory (RAM) & Active Network State", exp: "Step #1: Per RFC 3227 Order of Volatility, acquire RAM and socket tables before reboot or disruption." },
+      { text: "Isolate Compromised Host via EDR / VLAN Containment", exp: "Step #2: Network containment halts C2 beaconing and lateral spread while preserving local state." },
+      { text: "Eradicate Persistence & Patch Initial Vulnerability", exp: "Step #3: Remove webshells, rogue tasks, and close the exploited entry flaw before recovery." },
+      { text: "Restore Clean Immutable Backup & Monitor Telemetry", exp: "Step #4: Rebuild from verified backups and increase SIEM monitoring for re-infection." }
+    ]
+  },
+  {
+    id: "G2", kind: "order", type: "Type G: IR & Forensics Sequencing (Ransomware)", domain: 4,
+    desc: "Sequence the NIST SP 800-61 ransomware incident lifecycle from Step #1 to Step #4.",
+    mentorSummary: "Effective IR validates IOCs and scope first, contains compromised accounts/hosts second, eradicates artifacts and rotates secrets third, and recovers/reviews last.",
+    items: [
+      { text: "Detection & Analysis: Validate IOCs & Scope Blast Radius", exp: "Step #1: Confirm true-positive ransomware behavior and identify affected shares before disruptive action." },
+      { text: "Containment: Isolate Infected Hosts & Revoke Active Tokens", exp: "Step #2: Sever SMB paths and revoke hijacked credentials to stop encryption from spreading." },
+      { text: "Eradication: Wipe Tainted Systems & Rotate Kerberos/Service Keys", exp: "Step #3: Eliminate malware persistence and rotate privileged secrets to deny adversary re-entry." },
+      { text: "Recovery & Lessons Learned: Restore Backups & Update Playbooks", exp: "Step #4: Restore validated offline backups, confirm integrity, and document post-incident fixes." }
+    ]
+  }
+];
+
+const DEFENSES = [
+  { id: "edr", name: "EDR & Behavioral Monitoring", cost: 8000, domain: 4, desc: "Reduces host breach uptime damage by 30% and catches shadow-copy tampering." },
+  { id: "siem", name: "SIEM + SOAR Automation", cost: 12000, domain: 4, desc: "Auto-mitigates 1 Medium alert per shift and boosts alert triage rewards by +$1,000." },
+  { id: "nac", name: "Zero Trust NAC & MFA", cost: 10000, domain: 3, desc: "Cuts credential/lateral movement damage by 35% and boosts Board Trust +8% on purchase." },
+  { id: "backup", name: "Immutable Offsite Backups", cost: 7500, domain: 1, desc: "Cuts Ransomware recovery & uptime penalty by 70%." },
+  { id: "hunter", name: "Hire Threat Hunter", cost: 6000, upkeep: 1000, domain: 4, desc: "Proactively clears 1 alert per shift (+$1,000/shift salary upkeep)." }
+];
+
+const GRC_SCENARIOS = [
+  {
+    type: "calc", domain: 5,
+    prompt: "Core E-Commerce Server: Asset Value (AV) = $200,000, Exposure Factor (EF) = 40% (0.40), Annualized Rate of Occurrence (ARO) = 0.5 (once every 2 years). Calculate the Annualized Loss Expectancy (ALE).",
+    answer: 40000, unit: "$",
+    explain: "SLE = AV × EF = $200,000 × 0.40 = $80,000. ALE = SLE × ARO = $80,000 × 0.5 = $40,000."
+  },
+  {
+    type: "calc", domain: 5,
+    prompt: "Regional Branch Warehouse: Asset Value (AV) = $500,000, Exposure Factor (EF) = 25% (0.25). Calculate the Single Loss Expectancy (SLE).",
+    answer: 125000, unit: "$",
+    explain: "Single Loss Expectancy (SLE) = Asset Value ($500,000) × Exposure Factor (0.25) = $125,000."
+  },
+  {
+    type: "calc", domain: 5,
+    prompt: "Ransomware Risk Model: SLE = $150,000 and ARO = 0.20 (once every 5 years). What is the Annualized Loss Expectancy (ALE)?",
+    answer: 30000, unit: "$",
+    explain: "ALE = SLE ($150,000) × ARO (0.20) = $30,000 per year."
+  },
+  {
+    type: "choice", domain: 5,
+    prompt: "A legacy payment module has an ALE of $180,000, while an enterprise cyber-insurance policy costs $22,000/yr to cover breach liability. Which Risk Strategy is this?",
+    options: ["Risk Transference", "Risk Acceptance", "Risk Avoidance", "Risk Mitigation"],
+    correct: 0,
+    explain: "Purchasing cyber insurance shifts financial impact to a third party, which is Risk Transference."
+  },
+  {
+    type: "choice", domain: 5,
+    prompt: "A decorative intranet widget has an ALE of $400, whereas patching/rewriting it costs $9,500. Which Risk Strategy makes the most business sense?",
+    options: ["Risk Acceptance", "Risk Transference", "Risk Avoidance", "Risk Deterrence"],
+    correct: 0,
+    explain: "When control cost ($9,500) far exceeds ALE ($400), formal Risk Acceptance is justified."
+  },
+  {
+    type: "choice", domain: 5,
+    prompt: "The Board mandates a Maximum Tolerable Downtime (MTD) of 4 hours and zero tolerance for losing more than 15 minutes of financial transactions. Which metric defines that 15-minute data loss ceiling?",
+    options: ["RPO (Recovery Point Objective)", "RTO (Recovery Time Objective)", "MTBF (Mean Time Between Failures)", "ARO (Annualized Rate of Occurrence)"],
+    correct: 0,
+    explain: "RPO defines the maximum acceptable amount of data loss measured in time (15 minutes)."
+  }
+];
+
+const state = {
+  mode: "study",
+  shift: 1,
+  maxShifts: 12,
+  budget: 25000,
+  uptime: 100,
+  trust: 80,
+  activeTab: "siem",
+  alerts: [],
+  pbqs: [],
+  grcs: [],
+  ownedDef: new Set(),
+  usedPbqIds: new Set(),
+  nextId: 1,
+  ended: false,
+  shiftAlertsCorrect: 0,
+  shiftAlertsMissed: 0,
+  shiftPbqsCorrect: 0,
+  shiftPbqsMissed: 0,
+  shiftDomainMistakes: {},
+  missedLog: [],
+  domainStats: {
+    1: { ok: 0, tot: 0 },
+    2: { ok: 0, tot: 0 },
+    3: { ok: 0, tot: 0 },
+    4: { ok: 0, tot: 0 },
+    5: { ok: 0, tot: 0 }
+  }
+};
+
+function esc(s) {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function initRecordDisplay() {
+  try {
+    const rec = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+    if (rec) {
+      document.getElementById("bestRecordLine").textContent =
+        `Saved Personal Best (${rec.mode.toUpperCase()}): ${rec.overall}% SY0-701 Readiness | $${rec.budget.toLocaleString()} Remaining`;
+    }
+  } catch (_) {}
+}
+initRecordDisplay();
+
+function startGame(mode) {
+  state.mode = mode;
+  state.missedLog = [];
+  state.usedPbqIds = new Set();
+  document.getElementById("startModal").classList.add("hidden");
+  const badge = document.getElementById("modeBadge");
+  if (mode === "hardcore") {
+    badge.textContent = "CISO HARDCORE (EXAM)";
+    badge.className = "badge hardcore";
+    state.budget = 22000;
+  } else {
+    badge.textContent = "TIER 2 ANALYST (STUDY)";
+    badge.className = "badge study";
+  }
+  addLog("info", `Shift 1 initialized in ${mode === "hardcore" ? "CISO Hardcore" : "Tier 2 Study"} mode.`, "Monitor SIEM telemetry, complete non-repeating PBQ tickets (+$5k), and protect CIA Triad health across 12 shifts.");
+  spawnShiftEvents();
+  renderAll();
+}
+
+function nextPbqTicket() {
+  let avail = PBQ_DECK.filter(p => !state.usedPbqIds.has(p.id) && !state.pbqs.some(a => a.tplId === p.id));
+  if (!avail.length) {
+    state.usedPbqIds.clear();
+    avail = PBQ_DECK.filter(p => !state.pbqs.some(a => a.tplId === p.id));
+  }
+  const tpl = avail[Math.floor(Math.random() * avail.length)];
+  state.usedPbqIds.add(tpl.id);
+  if (tpl.kind === "order") {
+    let shuffled = [...tpl.items].sort(() => Math.random() - 0.5);
+    if (shuffled.every((x, i) => x.text === tpl.items[i].text)) {
+      shuffled = [shuffled[1], shuffled[0], ...shuffled.slice(2)];
+    }
+    return { ...tpl, tplId: tpl.id, id: state.nextId++, currentOrder: shuffled };
+  }
+  const items = [...tpl.items].sort(() => Math.random() - 0.5).slice(0, 4);
+  return { ...tpl, tplId: tpl.id, id: state.nextId++, items };
+}
+
+function spawnShiftEvents() {
+  const alertCount = Math.random() < 0.5 ? 2 : 3;
+  const poolCopy = [...ALERT_POOL].sort(() => Math.random() - 0.5);
+  for (let i = 0; i < alertCount; i++) {
+    const tpl = poolCopy[i];
+    const opts = [...tpl.options].sort(() => Math.random() - 0.5);
+    state.alerts.push({ ...tpl, options: opts, id: state.nextId++, hintShown: false, age: 0 });
+  }
+  const pbqCount = state.pbqs.length === 0 ? 2 : 1;
+  for (let i = 0; i < pbqCount && state.pbqs.length < 3; i++) {
+    state.pbqs.push(nextPbqTicket());
+  }
+  if (state.grcs.length < 2) {
+    const g = GRC_SCENARIOS[(state.shift - 1 + state.grcs.length) % GRC_SCENARIOS.length];
+    state.grcs.push({ ...g, id: state.nextId++ });
+  }
+
+  if (state.ownedDef.has("siem")) {
+    const medIdx = state.alerts.findIndex(a => a.sev === "medium");
+    if (medIdx !== -1) {
+      const auto = state.alerts.splice(medIdx, 1)[0];
+      recordDomain(auto.domain, true);
+      state.shiftAlertsCorrect++;
+      addLog("good", `SOAR Playbook auto-remediated: ${auto.title}`, "SOAR automation executes predefined containment playbooks on repetitive alerts to reduce MTTR.");
+    }
+  }
+  if (state.ownedDef.has("hunter") && state.alerts.length > 1) {
+    const hunted = state.alerts.pop();
+    recordDomain(hunted.domain, true);
+    state.shiftAlertsCorrect++;
+    state.budget += 1000;
+    addLog("good", `Threat Hunter proactively neutralized: ${hunted.title} (+$1,000)`, "Threat hunting proactively searches for IOCs and adversary TTPs before incidents escalate.");
+  }
+}
+
+function recordDomain(dom, ok) {
+  state.domainStats[dom].tot++;
+  if (ok) state.domainStats[dom].ok++;
+}
+
+function recordShiftMistake(dom) {
+  state.shiftDomainMistakes[dom] = (state.shiftDomainMistakes[dom] || 0) + 1;
+}
+
+function showHint(alertId) {
+  const a = state.alerts.find(x => x.id === alertId);
+  if (a) { a.hintShown = true; renderTab(); }
+}
+
+function resolveAlert(alertId, optIdx) {
+  if (state.ended) return;
+  const idx = state.alerts.findIndex(x => x.id === alertId);
+  if (idx === -1) return;
+  const alert = state.alerts[idx];
+  const chosen = alert.options[optIdx];
+  state.alerts.splice(idx, 1);
+
+  recordDomain(alert.domain, chosen.ok);
+  const mult = state.mode === "hardcore" ? 1.3 : 1.0;
+
+  if (chosen.ok) {
+    state.shiftAlertsCorrect++;
+    const bonus = 1500 + (state.ownedDef.has("siem") ? 1000 : 0);
+    state.budget += bonus;
+    state.uptime = Math.min(100, state.uptime + 3);
+    state.trust = Math.min(100, state.trust + 2);
+    addLog("good", `CONTAINED: ${alert.title} (+$${bonus.toLocaleString()}, +3% Uptime)`, `[${DOMAINS[alert.domain]}] ${chosen.exp}`);
+  } else {
+    state.shiftAlertsMissed++;
+    recordShiftMistake(alert.domain);
+    const rightOpt = alert.options.find(o => o.ok);
+    state.missedLog.push({
+      shift: state.shift,
+      domain: alert.domain,
+      type: "SIEM Alert",
+      topic: alert.title,
+      yourPick: chosen.text,
+      correctPick: rightOpt ? rightOpt.text : "N/A",
+      rule: chosen.exp
+    });
+
+    let costPen = Math.round((alert.sev === "critical" ? 4000 : 2500) * mult);
+    let upPen = Math.round((alert.sev === "critical" ? 14 : 9) * mult);
+    if (alert.title.includes("Ransomware") && state.ownedDef.has("backup")) {
+      costPen = Math.round(costPen * 0.3);
+      upPen = Math.round(upPen * 0.3);
+    } else if (state.ownedDef.has("edr")) {
+      upPen = Math.round(upPen * 0.7);
+    }
+    if (state.ownedDef.has("nac") && (alert.title.includes("Credential") || alert.title.includes("Pass-the-Hash"))) {
+      upPen = Math.round(upPen * 0.65);
+    }
+    state.budget -= costPen;
+    state.uptime = Math.max(0, state.uptime - upPen);
+    state.trust = Math.max(0, state.trust - 6);
+    addLog("bad", `MISCONFIGURED RESPONSE: ${alert.title} (-$${costPen.toLocaleString()}, -${upPen}% Uptime)`, `[${DOMAINS[alert.domain]}] ${chosen.exp}`);
+  }
+  checkEndState();
+  renderAll();
+}
+
+function movePbqItem(pbqId, idx, dir) {
+  if (state.ended) return;
+  const pbq = state.pbqs.find(x => x.id === pbqId);
+  if (!pbq || pbq.kind !== "order") return;
+  const target = idx + dir;
+  if (target < 0 || target >= pbq.currentOrder.length) return;
+  const arr = pbq.currentOrder;
+  [arr[idx], arr[target]] = [arr[target], arr[idx]];
+  renderTab();
+}
+
+function submitPbq(pbqId) {
+  if (state.ended) return;
+  const idx = state.pbqs.findIndex(x => x.id === pbqId);
+  if (idx === -1) return;
+  const pbq = state.pbqs[idx];
+  let correct = 0;
+  const misses = [];
+
+  if (pbq.kind === "order") {
+    pbq.items.forEach((expected, i) => {
+      const actual = pbq.currentOrder[i];
+      if (actual.text === expected.text) {
+        correct++;
+      } else {
+        const posLabel = `Position #${i + 1}`;
+        misses.push({ q: posLabel, pick: actual.text, ans: expected.text, why: expected.exp });
+        state.missedLog.push({
+          shift: state.shift,
+          domain: pbq.domain,
+          type: "PBQ Ticket",
+          topic: `${pbq.type} — ${posLabel}`,
+          yourPick: actual.text,
+          correctPick: expected.text,
+          rule: expected.exp
+        });
+      }
+    });
+  } else {
+    pbq.items.forEach((item, i) => {
+      const val = document.getElementById(`pbq_${pbqId}_${i}`).value;
+      if (val === item.ans) {
+        correct++;
+      } else {
+        const pick = val || "(No Selection)";
+        const rule = item.exp || item.why;
+        misses.push({ q: item.q, pick, ans: item.ans, why: rule });
+        state.missedLog.push({
+          shift: state.shift,
+          domain: pbq.domain,
+          type: "PBQ Ticket",
+          topic: `${pbq.type} — ${item.q}`,
+          yourPick: pick,
+          correctPick: item.ans,
+          rule
+        });
+      }
+    });
+  }
+
+  state.pbqs.splice(idx, 1);
+  const passed = correct === pbq.items.length;
+  recordDomain(pbq.domain, passed);
+
+  if (passed) {
+    state.shiftPbqsCorrect++;
+    state.budget += 5000;
+    state.trust = Math.min(100, state.trust + 5);
+    addLog("good", `PBQ PASSED (${correct}/${pbq.items.length}): ${pbq.type} (+$5,000, +5% Trust)`, `[${DOMAINS[pbq.domain]}] ${pbq.mentorSummary}`);
+  } else {
+    state.shiftPbqsMissed++;
+    recordShiftMistake(pbq.domain);
+    state.budget -= 1000;
+    state.trust = Math.max(0, state.trust - 4);
+    addLog("bad", `PBQ FAILED (${correct}/${pbq.items.length}): ${pbq.type} (-$1,000, -4% Trust)`, `[${DOMAINS[pbq.domain]}] ${pbq.mentorSummary}`);
+  }
+
+  logMentorReview(pbq, misses);
+  checkEndState();
+  renderAll();
+}
+
+function logMentorReview(pbq, misses) {
+  const feed = document.getElementById("feedLog");
+  const el = document.createElement("div");
+  if (misses.length === 0) {
+    el.className = "mentor-card mentor-ok";
+    el.innerHTML = `
+      <div class="mentor-title">[SENIOR MENTOR REVIEW — PBQ TICKET]</div>
+      <div><strong>100% Verified (${esc(pbq.type)}):</strong> Clean execution.</div>
+      <div class="exam-tip">${esc(pbq.mentorSummary)}</div>
+    `;
+  } else {
+    el.className = "mentor-card";
+    el.innerHTML = `
+      <div class="mentor-title">[SENIOR MENTOR REVIEW — PBQ TICKET]</div>
+      <div style="font-size:0.76rem;color:var(--muted);">${esc(pbq.type)} (${misses.length} item${misses.length > 1 ? "s" : ""} missed):</div>
+      ${misses.map(m => `
+        <div class="mentor-miss">
+          <div class="q-lbl">${esc(m.q)}</div>
+          <div class="pick-bad">Your Pick: ${esc(m.pick)} &#10060;</div>
+          <div class="pick-good">Correct: ${esc(m.ans)} &#9989;</div>
+          <div class="why-txt">${esc(m.why)}</div>
+        </div>
+      `).join("")}
+    `;
+  }
+  feed.prepend(el);
+}
+
+function buyDefense(defId) {
+  if (state.ended || state.ownedDef.has(defId)) return;
+  const d = DEFENSES.find(x => x.id === defId);
+  if (state.budget < d.cost) {
+    addLog("warn", `Insufficient SOC budget for ${d.name} ($${d.cost.toLocaleString()} required).`, "Complete PBQ Lab Tickets or contain SIEM alerts to raise capital.");
+    return;
+  }
+  state.budget -= d.cost;
+  state.ownedDef.add(defId);
+  if (defId === "nac") state.trust = Math.min(100, state.trust + 8);
+  addLog("info", `DEPLOYED CONTROL: ${d.name} (-$${d.cost.toLocaleString()})`, `[${DOMAINS[d.domain]}] ${d.desc}`);
+  renderAll();
+}
+
+function submitGrcCalc(grcId) {
+  if (state.ended) return;
+  const idx = state.grcs.findIndex(x => x.id === grcId);
+  if (idx === -1) return;
+  const g = state.grcs[idx];
+  const rawInput = document.getElementById(`grc_in_${grcId}`).value.trim();
+  const raw = rawInput.replace(/[$,\s]/g, "");
+  const val = Number(raw);
+  const ok = raw !== "" && !isNaN(val) && Math.abs(val - g.answer) < 1;
+  resolveGrcResult(idx, g, ok, rawInput || "(Blank)", "$" + g.answer.toLocaleString());
+}
+
+function submitGrcChoice(grcId, choiceIdx) {
+  if (state.ended) return;
+  const idx = state.grcs.findIndex(x => x.id === grcId);
+  if (idx === -1) return;
+  const g = state.grcs[idx];
+  resolveGrcResult(idx, g, choiceIdx === g.correct, g.options[choiceIdx], g.options[g.correct]);
+}
+
+function resolveGrcResult(idx, g, ok, yourPick, correctPick) {
+  state.grcs.splice(idx, 1);
+  recordDomain(g.domain, ok);
+  if (ok) {
+    state.budget += 2500;
+    state.trust = Math.min(100, state.trust + 6);
+    addLog("good", `GRC AUDIT PASSED (+$2,500, +6% Board Trust)`, `[${DOMAINS[g.domain]}] ${g.explain}`);
+  } else {
+    recordShiftMistake(g.domain);
+    state.missedLog.push({
+      shift: state.shift,
+      domain: g.domain,
+      type: "GRC Risk Board",
+      topic: g.prompt,
+      yourPick,
+      correctPick,
+      rule: g.explain
+    });
+    state.trust = Math.max(0, state.trust - 8);
+    addLog("bad", `GRC AUDIT FINDING (-8% Board Trust)`, `[${DOMAINS[g.domain]}] ${g.explain}`);
+  }
+  checkEndState();
+  renderAll();
+}
+
+function logShiftDebrief() {
+  const feed = document.getElementById("feedLog");
+  const totAlerts = state.shiftAlertsCorrect + state.shiftAlertsMissed;
+  const totPbqs = state.shiftPbqsCorrect + state.shiftPbqsMissed;
+  const missedDoms = Object.entries(state.shiftDomainMistakes).sort((a, b) => b[1] - a[1]);
+
+  let focusHtml = `<div class="debrief-focus" style="color:var(--green);border-top-color:rgba(16,185,129,0.2);">Clean Shift: Zero domain errors recorded. Maintain alert SLA discipline!</div>`;
+  if (missedDoms.length > 0) {
+    const topDom = Number(missedDoms[0][0]);
+    const listStr = missedDoms.map(([d, cnt]) => `${DOMAINS[d]} (${cnt})`).join(", ");
+    focusHtml = `
+      <div class="debrief-focus">
+        <strong>Shift Study Focus:</strong> ${esc(listStr)}<br>
+        <span style="color:#cbd5e1;">Rule: ${esc(DOMAIN_RULES[topDom])}</span>
+      </div>
+    `;
+  }
+
+  const el = document.createElement("div");
+  el.className = "debrief-card";
+  el.innerHTML = `
+    <div class="debrief-head">
+      <span class="mono">[SHIFT ${state.shift} DEBRIEF]</span>
+      <span class="mono" style="color:${missedDoms.length ? "var(--amber)" : "var(--green)"}">
+        Alerts: ${state.shiftAlertsCorrect}/${totAlerts} Contained | PBQs: ${state.shiftPbqsCorrect}/${totPbqs} Passed
+      </span>
+    </div>
+    ${focusHtml}
+  `;
+  feed.prepend(el);
+
+  state.shiftAlertsCorrect = 0;
+  state.shiftAlertsMissed = 0;
+  state.shiftPbqsCorrect = 0;
+  state.shiftPbqsMissed = 0;
+  state.shiftDomainMistakes = {};
+}
+
+function advanceShift() {
+  if (state.ended) return;
+  const baseOp = 1200 + (state.ownedDef.has("hunter") ? 1000 : 0);
+  state.budget -= baseOp;
+
+  if (state.alerts.length > 0) {
+    const strict = state.mode === "hardcore";
+    let upHit = 0, trustHit = 0;
+    state.alerts.forEach(a => {
+      a.age++;
+      if (strict || a.age >= 2) {
+        upHit += strict ? 8 : 4;
+        trustHit += strict ? 6 : 3;
+        state.shiftAlertsMissed++;
+        recordShiftMistake(a.domain);
+      }
+    });
+    if (upHit > 0) {
+      state.uptime = Math.max(0, state.uptime - upHit);
+      state.trust = Math.max(0, state.trust - trustHit);
+      addLog("warn", `SLA BREACH: ${state.alerts.length} unresolved alert(s) (-${upHit}% Uptime, -${trustHit}% Trust).`, "Incident response SLAs require timely triage before threats escalate laterally.");
+    }
+  }
+
+  logShiftDebrief();
+
+  if (checkEndState()) { renderAll(); return; }
+
+  if (state.shift >= state.maxShifts) {
+    state.ended = true;
+    addLog("good", "QUARTERLY CYCLE COMPLETE! You successfully led the SOC through all 12 shifts!", "Review your SY0-701 Domain Readiness breakdown.");
+    renderAll();
+    openStatsModal(true);
+    return;
+  }
+
+  state.shift++;
+  addLog("info", `--- Shift ${state.shift} / 12 Started (OpEx -$${baseOp.toLocaleString()}) ---`, "New telemetry ingested.");
+  spawnShiftEvents();
+  checkEndState();
+  renderAll();
+}
+
+function checkEndState() {
+  if (state.uptime <= 0 || state.trust <= 0 || state.budget < 0) {
+    state.ended = true;
+    renderAll();
+    openStatsModal(false);
+    return true;
+  }
+  return false;
+}
+
+function addLog(type, title, exp) {
+  const feed = document.getElementById("feedLog");
+  const el = document.createElement("div");
+  el.className = `log-item ${type}`;
+  el.innerHTML = `<div class="log-meta mono">SHIFT ${state.shift}</div><strong>${esc(title)}</strong><div class="exam-tip">${esc(exp)}</div>`;
+  feed.prepend(el);
+}
+
+function switchTab(tab) {
+  state.activeTab = tab;
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+  renderTab();
+}
+
+function renderAll() {
+  document.getElementById("stShift").textContent = `${state.shift} / ${state.maxShifts}`;
+  const bEl = document.getElementById("stBudget");
+  bEl.textContent = `$${state.budget.toLocaleString()}`;
+  bEl.style.color = state.budget < 3000 ? "var(--red)" : "var(--green)";
+
+  const uEl = document.getElementById("stUptime");
+  uEl.textContent = `${state.uptime}%`;
+  uEl.style.color = state.uptime < 40 ? "var(--red)" : state.uptime < 70 ? "var(--amber)" : "var(--green)";
+
+  const tEl = document.getElementById("stTrust");
+  tEl.textContent = `${state.trust}%`;
+  tEl.style.color = state.trust < 35 ? "var(--red)" : "var(--cyan)";
+
+  document.getElementById("cntSiem").textContent = state.alerts.length;
+  document.getElementById("cntPbq").textContent = state.pbqs.length;
+  document.getElementById("cntDef").textContent = `${state.ownedDef.size}/${DEFENSES.length}`;
+  document.getElementById("cntGrc").textContent = state.grcs.length;
+  document.getElementById("advBtn").disabled = state.ended;
+  renderTab();
+}
+
+function renderTab() {
+  const body = document.getElementById("tabBody");
+  if (state.activeTab === "siem") {
+    if (!state.alerts.length) {
+      body.innerHTML = `<div class="empty">All active SIEM alerts triaged. Check PBQ Tickets, GRC Audits, or Advance Shift.</div>`;
+      return;
+    }
+    body.innerHTML = state.alerts.map(a => `
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <strong style="font-size:0.95rem">${esc(a.title)}</strong>
+            <div style="font-size:0.74rem;color:var(--purple);margin-top:2px;">${DOMAINS[a.domain]}</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            ${state.mode === "study" && !a.hintShown ? `<button class="hint-btn" onclick="showHint(${a.id})">Consult NIST/Playbook Hint</button>` : ""}
+            <span class="sev ${a.sev}">${a.sev}</span>
+          </div>
+        </div>
+        <div class="meta-row mono">
+          <span>SRC: ${esc(a.src)}</span>
+          <span>DST: ${esc(a.dst)}</span>
+          ${a.age > 0 ? `<span style="color:var(--amber)">CARRYOVER AGE: ${a.age}</span>` : ""}
+        </div>
+        <div class="telemetry mono">${a.telemetry}</div>
+        ${a.hintShown ? `<div class="hint-box"><strong>Playbook Hint:</strong> ${esc(a.hint)}</div>` : ""}
+        <div class="resp-grid">
+          ${a.options.map((o, i) => `<button class="resp-btn" onclick="resolveAlert(${a.id},${i})">${esc(o.text)}</button>`).join("")}
+        </div>
+      </div>
+    `).join("");
+  } else if (state.activeTab === "pbq") {
+    if (!state.pbqs.length) {
+      body.innerHTML = `<div class="empty">No pending PBQ Lab Tickets this shift.</div>`;
+      return;
+    }
+    body.innerHTML = state.pbqs.map(p => `
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <strong style="color:var(--cyan)">${esc(p.type)}</strong>
+            <div style="font-size:0.73rem;color:var(--purple);margin-top:2px;">${DOMAINS[p.domain]}</div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-top:2px;">${esc(p.desc)} (Reward: +$5,000 &amp; +5% Trust)</div>
+          </div>
+          <span class="sev medium">${p.kind === "order" ? "Sequence" : "Matrix"}</span>
+        </div>
+        ${p.kind === "order" ? `
+          <div class="order-list">
+            ${p.currentOrder.map((it, idx) => `
+              <div class="order-row">
+                <span class="order-idx mono">#${idx + 1}</span>
+                <span class="order-txt mono">${esc(it.text)}</span>
+                <div class="order-btns">
+                  <button class="order-btn" ${idx === 0 ? "disabled" : ""} onclick="movePbqItem(${p.id},${idx},-1)" title="Move Up">&#9650;</button>
+                  <button class="order-btn" ${idx === p.currentOrder.length - 1 ? "disabled" : ""} onclick="movePbqItem(${p.id},${idx},1)" title="Move Down">&#9660;</button>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        ` : `
+          <div style="margin:10px 0;">
+            ${p.items.map((it, idx) => `
+              <div class="pbq-row">
+                <span>${esc(it.q)}</span>
+                <select id="pbq_${p.id}_${idx}">
+                  <option value="">-- Select --</option>
+                  ${p.choices.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("")}
+                </select>
+              </div>
+            `).join("")}
+          </div>
+        `}
+        <button class="primary" onclick="submitPbq(${p.id})">Validate Configuration</button>
+      </div>
+    `).join("");
+  } else if (state.activeTab === "def") {
+    body.innerHTML = `<div class="def-grid">${DEFENSES.map(d => {
+      const own = state.ownedDef.has(d.id);
+      return `
+        <div class="card def-card ${own ? "owned" : ""}">
+          <div>
+            <div class="card-head">
+              <strong>${esc(d.name)}</strong>
+              <span class="mono" style="color:${own ? "var(--green)" : "var(--amber)"}">${own ? "ACTIVE" : "$" + d.cost.toLocaleString()}</span>
+            </div>
+            <p style="font-size:0.81rem;color:var(--muted);line-height:1.45;">${esc(d.desc)}</p>
+          </div>
+          <button class="${own ? "" : "primary"}" ${own ? "disabled" : ""} onclick="buyDefense('${d.id}')">
+            ${own ? "Deployed" : "Purchase & Deploy"}
+          </button>
+        </div>
+      `;
+    }).join("")}</div>`;
+  } else if (state.activeTab === "grc") {
+    if (!state.grcs.length) {
+      body.innerHTML = `<div class="empty">All Board GRC &amp; Risk assessments complete for this shift.</div>`;
+      return;
+    }
+    body.innerHTML = state.grcs.map(g => `
+      <div class="card">
+        <div class="card-head">
+          <strong style="color:var(--amber)">Board Audit / Quantitative Risk Review</strong>
+          <span class="sev medium">Domain 5.0</span>
+        </div>
+        <p style="font-size:0.86rem;line-height:1.5;margin:8px 0 12px;">${esc(g.prompt)}</p>
+        ${g.type === "calc" ? `
+          <div style="display:flex;gap:10px;max-width:340px;">
+            <input type="text" id="grc_in_${g.id}" placeholder="Enter dollar value (e.g. 40000)">
+            <button class="primary" onclick="submitGrcCalc(${g.id})">Submit</button>
+          </div>
+        ` : `
+          <div class="resp-grid">
+            ${g.options.map((o, idx) => `<button class="resp-btn" onclick="submitGrcChoice(${g.id},${idx})">${esc(o)}</button>`).join("")}
+          </div>
+        `}
+      </div>
+    `).join("");
+  }
+}
+
+function getOverallScore() {
+  let totOk = 0, totAll = 0;
+  Object.keys(DOMAINS).forEach(k => {
+    totOk += state.domainStats[k].ok;
+    totAll += state.domainStats[k].tot;
+  });
+  return { totOk, totAll, overall: totAll ? Math.round((totOk / totAll) * 100) : 0 };
+}
+
+function openStatsModal(victory = null) {
+  const modal = document.getElementById("statsModal");
+  const title = document.getElementById("statsTitle");
+  const sub = document.getElementById("statsSubtitle");
+  const closeBtn = document.getElementById("closeStatsBtn");
+
+  const { totAll, overall } = getOverallScore();
+  const rows = Object.keys(DOMAINS).map(k => {
+    const s = state.domainStats[k];
+    const pct = s.tot ? Math.round((s.ok / s.tot) * 100) : 0;
+    const color = !s.tot ? "var(--muted)" : pct >= 75 ? "var(--green)" : pct >= 50 ? "var(--amber)" : "var(--red)";
+    return `
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.83rem;">
+          <span>${DOMAINS[k]}</span>
+          <strong class="mono" style="color:${color}">${s.tot ? `${pct}% (${s.ok}/${s.tot})` : "No data yet"}</strong>
+        </div>
+        <div class="dom-bar"><div class="dom-fill" style="width:${pct}%;background:${color}"></div></div>
+      </div>
+    `;
+  }).join("");
+
+  if (victory === true) {
+    title.textContent = "MISSION ACCOMPLISHED: SOC COMMANDER CERTIFIED";
+    title.style.color = "var(--green)";
+    sub.textContent = `Survived all 12 shifts! Final Budget: $${state.budget.toLocaleString()} | Uptime: ${state.uptime}% | Trust: ${state.trust}%`;
+    closeBtn.classList.add("hidden");
+    try {
+      const prev = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+      if (!prev || overall > prev.overall || (overall === prev.overall && state.budget > prev.budget)) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ mode: state.mode, overall, budget: state.budget }));
+      }
+    } catch (_) {}
+  } else if (victory === false) {
+    title.textContent = "SOC COMMAND TERMINATED";
+    title.style.color = "var(--red)";
+    sub.textContent = `Quarter failed on Shift ${state.shift}. Budget: $${state.budget.toLocaleString()} | Uptime: ${state.uptime}% | Trust: ${state.trust}%`;
+    closeBtn.classList.add("hidden");
+  } else {
+    title.textContent = "CompTIA Security+ SY0-701 Readiness";
+    title.style.color = "var(--cyan)";
+    sub.textContent = "Live accuracy across all 5 exam domains and cumulative missed-item log.";
+    closeBtn.classList.remove("hidden");
+  }
+
+  const missHtml = state.missedLog.length === 0
+    ? `<div class="card" style="border-color:var(--green);background:rgba(16,185,129,0.08);color:var(--green);text-align:center;font-size:0.85rem;">
+         <strong>Flawless SOC Shift — Zero Missed Indicators</strong>
+       </div>`
+    : `<div class="miss-log-box">${state.missedLog.map(m => `
+        <div class="miss-entry">
+          <div class="mono" style="font-size:0.71rem;color:var(--muted);">SHIFT ${m.shift} &bull; ${esc(m.type)} &bull; ${esc(DOMAINS[m.domain])}</div>
+          <div style="font-weight:600;margin:2px 0;">${esc(m.topic)}</div>
+          <div style="color:#fca5a5;">Your Pick: ${esc(m.yourPick)} &#10060;</div>
+          <div style="color:#6ee7b7;">Correct: ${esc(m.correctPick)} &#9989;</div>
+          <div style="color:#cbd5e1;margin-top:2px;">Rule: ${esc(m.rule)}</div>
+        </div>
+      `).join("")}</div>`;
+
+  document.getElementById("statsBody").innerHTML = `
+    <div class="card" style="text-align:center;">
+      <div style="font-size:0.78rem;color:var(--muted)">OVERALL EXAM READINESS SCORE</div>
+      <div class="mono" style="font-size:1.6rem;color:var(--cyan);margin-top:4px;">${totAll ? overall + "%" : "N/A"}</div>
+    </div>
+    ${rows}
+    <div style="margin-top:6px;">
+      <div style="font-size:0.82rem;font-weight:700;color:var(--amber);margin-bottom:6px;">
+        COMPLETE RUN MISS LOG (${state.missedLog.length} item${state.missedLog.length === 1 ? "" : "s"})
+      </div>
+      ${missHtml}
+    </div>
+  `;
+  modal.classList.remove("hidden");
+}
+
+function generatePrintableGuide() {
+  const win = window.open("", "_blank");
+  if (!win) {
+    addLog("warn", "Pop-up blocked when opening printable study guide.", "Allow pop-ups for this page to export the SY0-701 PDF Study Guide.");
+    return;
+  }
+  const { totAll, overall } = getOverallScore();
+  const domainSummary = Object.keys(DOMAINS).map(k => {
+    const s = state.domainStats[k];
+    const pct = s.tot ? `${Math.round((s.ok / s.tot) * 100)}% (${s.ok}/${s.tot})` : "N/A";
+    return `<tr><td>${esc(DOMAINS[k])}</td><td>${pct}</td></tr>`;
+  }).join("");
+
+  const groupedHtml = state.missedLog.length === 0
+    ? `<div class="flawless"><strong>Flawless SOC Shift — Zero Missed Indicators</strong><p>Review the core SY0-701 Domain takeaways below to stay sharp for exam day:</p></div>
+       ${Object.keys(DOMAINS).map(k => `<div class="item"><strong>&#9744; ${esc(DOMAINS[k])}</strong><div>${esc(DOMAIN_RULES[k])}</div></div>`).join("")}`
+    : Object.keys(DOMAINS).map(k => {
+        const items = state.missedLog.filter(m => String(m.domain) === String(k));
+        if (!items.length) return "";
+        return `
+          <h2>${esc(DOMAINS[k])} (${items.length} Review Item${items.length > 1 ? "s" : ""})</h2>
+          ${items.map(m => `
+            <div class="item">
+              <div class="meta"><strong>&#9744; [Shift ${m.shift} &bull; ${esc(m.type)}]</strong> ${esc(m.topic)}</div>
+              <div><span class="bad">Your Pick:</span> ${esc(m.yourPick)}</div>
+              <div><span class="good">Correct Answer:</span> ${esc(m.correctPick)}</div>
+              <div class="rule"><strong>SY0-701 Rule:</strong> ${esc(m.rule)}</div>
+            </div>
+          `).join("")}
+        `;
+      }).join("");
+
+  win.document.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CompTIA Security+ SY0-701 Personalized Study Guide</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; color: #111; background: #fff; margin: 28px; line-height: 1.45; font-size: 13px; }
+  h1 { font-size: 20px; border-bottom: 2px solid #111; padding-bottom: 6px; margin-bottom: 8px; }
+  h2 { font-size: 15px; background: #f1f5f9; border-left: 4px solid #111; padding: 5px 8px; margin: 18px 0 8px; page-break-after: avoid; }
+  .hdr-meta { font-size: 12px; color: #333; margin-bottom: 14px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 12px; }
+  th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; }
+  th { background: #f8fafc; }
+  .item { border: 1px solid #cbd5e1; border-radius: 4px; padding: 9px 11px; margin-bottom: 9px; page-break-inside: avoid; }
+  .meta { margin-bottom: 4px; }
+  .bad { color: #991b1b; font-weight: 700; }
+  .good { color: #065f46; font-weight: 700; }
+  .rule { margin-top: 4px; color: #1e293b; }
+  .flawless { border: 1px solid #065f46; padding: 10px; background: #ecfdf5; margin-bottom: 12px; }
+  @media print { body { margin: 14px; } }
+</style>
+</head>
+<body>
+  <h1>SOC Incident Commander — SY0-701 Personalized Study Guide</h1>
+  <div class="hdr-meta">
+    Mode: <strong>${state.mode === "hardcore" ? "CISO Hardcore (Exam)" : "Tier 2 Analyst (Study)"}</strong> |
+    Shift Reached: <strong>${state.shift} / ${state.maxShifts}</strong> |
+    Readiness: <strong>${totAll ? overall + "%" : "N/A"}</strong> |
+    Uptime: <strong>${state.uptime}%</strong> |
+    Board Trust: <strong>${state.trust}%</strong>
+  </div>
+  <table>
+    <thead><tr><th>CompTIA Security+ (SY0-701) Domain</th><th>Accuracy</th></tr></thead>
+    <tbody>${domainSummary}</tbody>
+  </table>
+  ${groupedHtml}
+</body>
+</html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); }, 250);
+}
+
+function closeStatsModal() {
+  document.getElementById("statsModal").classList.add("hidden");
+}
+</script>
+</body>
+</html>
